@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>스마트폰 화면</title>
+    <style>
+        body {
+            background-color: #121212;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+            user-select: none;
+        }
+
+        .phone-frame {
+            width: 360px;
+            height: 720px;
+            background-color: #000;
+            border-radius: 48px;
+            padding: 12px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+
+        .phone-screen {
+            width: 100%;
+            height: 100%;
+            border-radius: 38px;
+            overflow: hidden;
+            position: relative;
+            background-color: #000;
+        }
+
+        .notch {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 25px;
+            background-color: #000;
+            border-radius: 20px;
+            z-index: 100;
+        }
+
+        .status-bar {
+            position: absolute;
+            top: 12px;
+            left: 0;
+            width: 100%;
+            padding: 0 24px;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+            z-index: 90;
+        }
+
+        .status-icons {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .screen-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.4s ease-in-out;
+            background-size: cover;
+            background-position: center;
+        }
+
+        #lock-screen {
+            background-image: url('IMG_9430.jpeg');
+            justify-content: space-between;
+            padding: 60px 0 30px;
+            box-sizing: border-box;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .clock {
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 72px;
+            font-weight: 300;
+            margin-top: 10px;
+            text-align: center;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .date {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 17px;
+            font-weight: 500;
+            text-align: center;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .tap-hint {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 13px;
+            animation: pulse 1.8s infinite;
+            text-shadow: 0 1px 5px rgba(0,0,0,0.5);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+
+        #passcode-screen {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(20px);
+            z-index: 20;
+        }
+
+        #passcode-screen.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        .passcode-title {
+            color: white;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        .dots-container {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+
+        .dot {
+            width: 14px;
+            height: 14px;
+            border: 2px solid white;
+            border-radius: 50%;
+        }
+
+        .dot.filled { background-color: white; }
+
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px 25px;
+        }
+
+        .key {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.25);
+            color: white;
+            font-size: 28px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        #home-screen {
+            background-image: url('IMG_9432.jpeg');
+            justify-content: space-between;
+            padding: 70px 20px 20px;
+            box-sizing: border-box;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        #home-screen.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px 15px;
+            width: 100%;
+        }
+
+        .app-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .app-icon {
+            width: 58px;
+            height: 58px;
+            border-radius: 14px;
+            object-fit: cover;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .app-name {
+            color: white;
+            font-size: 11px;
+            margin-top: 5px;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+        }
+
+        .badge {
+            position: absolute;
+            top: -4px;
+            right: 2px;
+            background-color: #ff3b30;
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 10px;
+            border: 2px solid #fff;
+        }
+
+        .dock {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 28px;
+            padding: 12px 10px;
+            display: flex;
+            justify-content: space-around;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="phone-frame">
+        <div class="notch"></div>
+
+        <div class="status-bar">
+            <span>12:05</span>
+            <div class="status-icons">
+                <span>📶</span>
+                <span>34%</span>
+                <span>🔋</span>
+            </div>
+        </div>
+
+        <div class="phone-screen">
+            <div id="lock-screen" class="screen-layer" onclick="showPasscode()">
+                <div>
+                    <div class="date">12월 5일 목요일</div>
+                    <div class="clock">12:05</div>
+                </div>
+                <div class="tap-hint">화면을 터치해서 암호 입력</div>
+            </div>
+
+            <div id="passcode-screen" class="screen-layer">
+                <div class="passcode-title">암호 입력</div>
+                <div class="dots-container" id="dots-container">
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                </div>
+                <div class="keypad">
+                    <div class="key" onclick="pressKey('1')">1</div>
+                    <div class="key" onclick="pressKey('2')">2</div>
+                    <div class="key" onclick="pressKey('3')">3</div>
+                    <div class="key" onclick="pressKey('4')">4</div>
+                    <div class="key" onclick="pressKey('5')">5</div>
+                    <div class="key" onclick="pressKey('6')">6</div>
+                    <div class="key" onclick="pressKey('7')">7</div>
+                    <div class="key" onclick="pressKey('8')">8</div>
+                    <div class="key" onclick="pressKey('9')">9</div>
+                    <div></div>
+                    <div class="key" onclick="pressKey('0')">0</div>
+                    <div></div>
+                </div>
+            </div>
+
+            <div id="home-screen" class="screen-layer">
+                <div class="app-grid">
+                    <div class="app-item" onclick="openApp('카카오톡')">
+                        <div class="badge">+3</div>
+                        <img class="app-icon" src="https://upload.wikimedia.org/wikipedia/commons/e/e3/KakaoTalk_logo.svg" alt="카카오톡">
+                        <span class="app-name">카카오톡</span>
+                    </div>
+                    <div class="app-item" onclick="openApp('메모장')">
+                        <img class="app-icon" src="https://upload.wikimedia.org/wikipedia/commons/0/01/iOS_Notes_icon.png" alt="메모장">
+                        <span class="app-name">메모장</span>
+                    </div>
+                    <div class="app-item" onclick="openApp('인스타그램')">
+                        <img class="app-icon" src="https://upload.wikimedia.org/wikipedia/commons/e/e7/Instagram_logo_2016.svg" alt="인스타그램">
+                        <span class="app-name">인스타그램</span>
+                    </div>
+                    <div class="app-item" onclick="openApp('멜론')">
+                        <img class="app-icon" src="https://play-lh.googleusercontent.com/9C22IspYyKChqj4y5L6NshB_82_sPZIsjT-qY4B9wO_3ZcI" alt="멜론">
+                        <span class="app-name">멜론</span>
+                    </div>
+                    <div class="app-item" onclick="openApp('앨범')">
+                        <img class="app-icon" src="https://upload.wikimedia.org/wikipedia/commons/5/59/Apple_Photos_icon.png" alt="앨범">
+                        <span class="app-name">앨범</span>
+                    </div>
+                </div>
+
+                <div class="dock">
+                    <div class="app-item" onclick="openApp('전화')">
+                        <img class="app-icon" src="https://upload.wikimedia.org/wikipedia/commons/a/a2/iOS_Phone_icon.png" alt="전화">
+                    </div>
+                    <div class="app-item" onclick="openApp('메시지')">
+                        <img class="app-icon" src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_Messenger_logo_2020.svg" alt="메시지">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const CORRECT_PASSCODE = "1205";
+        let inputPasscode = "";
+
+        function showPasscode() {
+            document.getElementById('passcode-screen').classList.add('active');
+        }
+
+        function pressKey(num) {
+            if (inputPasscode.length < 4) {
+                inputPasscode += num;
+                updateDots();
+                if (inputPasscode.length === 4) {
+                    setTimeout(checkPasscode, 150);
+                }
+            }
+        }
+
+        function updateDots() {
+            const dots = document.querySelectorAll('.dot');
+            dots.forEach((dot, index) => {
+                if (index < inputPasscode.length) {
+                    dot.classList.add('filled');
+                } else {
+                    dot.classList.remove('filled');
+                }
+            });
+        }
+
+        function checkPasscode() {
+            if (inputPasscode === CORRECT_PASSCODE) {
+                document.getElementById('passcode-screen').classList.remove('active');
+                document.getElementById('lock-screen').style.display = 'none';
+                document.getElementById('home-screen').classList.add('active');
+            } else {
+                alert("비밀번호가 틀렸습니다 (1205)");
+                inputPasscode = "";
+                updateDots();
+            }
+        }
+
+        function openApp(appName) {
+            alert(appName + " 실행!");
+        }
+    </script>
+</body>
+</html>
